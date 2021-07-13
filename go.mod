@@ -1,4 +1,4 @@
-module regression
+module github.com/yanjunhui/regression
 
 go 1.16
 
