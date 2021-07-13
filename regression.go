@@ -22,7 +22,7 @@ var (
 // Regression is the exposed data structure for interacting with the API.
 type Regression struct {
 	names             describe
-	data              []*dataPoint
+	data              []*DataPoint
 	coeff             map[int]float64
 	R2                float64
 	Varianceobserved  float64
@@ -33,7 +33,7 @@ type Regression struct {
 	hasRun            bool
 }
 
-type dataPoint struct {
+type DataPoint struct {
 	Observed  float64
 	Variables []float64
 	Predicted float64
@@ -45,13 +45,13 @@ type describe struct {
 	vars map[int]string
 }
 
-// DataPoints is a slice of *dataPoint
+// DataPoints is a slice of *DataPoint
 // This type allows for easier construction of training data points.
-type DataPoints []*dataPoint
+type DataPoints []*DataPoint
 
-// DataPoint creates a well formed *datapoint used for training.
-func DataPoint(obs float64, vars []float64) *dataPoint {
-	return &dataPoint{Observed: obs, Variables: vars}
+// ImportDataPoint creates a well formed *datapoint used for training.
+func ImportDataPoint(obs float64, vars []float64) *DataPoint {
+	return &DataPoint{Observed: obs, Variables: vars}
 }
 
 // Predict updates the "Predicted" value for the inputed features.
@@ -106,7 +106,7 @@ func (r *Regression) AddCross(cross featureCross) {
 }
 
 // Train the regression with some data points.
-func (r *Regression) Train(d ...*dataPoint) {
+func (r *Regression) Train(d ...*DataPoint) {
 	r.data = append(r.data, d...)
 	if len(r.data) > 2 {
 		r.initialised = true
@@ -275,8 +275,8 @@ func (r *Regression) calcResiduals() string {
 	return str
 }
 
-// String satisfies the stringer interface to display a dataPoint as a string.
-func (d *dataPoint) String() string {
+// String satisfies the stringer interface to display a DataPoint as a string.
+func (d *DataPoint) String() string {
 	str := fmt.Sprintf("%.2f", d.Observed)
 	for _, v := range d.Variables {
 		str += fmt.Sprintf("|\t%.2f", v)
@@ -303,19 +303,19 @@ func (r *Regression) String() string {
 	return str
 }
 
-// MakeDataPoints makes a `[]*dataPoint` from a `[][]float64`. The expected fomat for the input is a row-major [][]float64.
+// MakeDataPoints makes a `[]*DataPoint` from a `[][]float64`. The expected fomat for the input is a row-major [][]float64.
 // That is to say the first slice represents a row, and the second represents the cols.
 // Furthermore it is expected that all the col slices are of the same length.
 // The obsIndex parameter indicates which column should be used
-func MakeDataPoints(a [][]float64, obsIndex int) []*dataPoint {
+func MakeDataPoints(a [][]float64, obsIndex int) []*DataPoint {
 	if obsIndex != 0 && obsIndex != len(a[0])-1 {
 		return perverseMakeDataPoints(a, obsIndex)
 	}
 
-	retVal := make([]*dataPoint, 0, len(a))
+	retVal := make([]*DataPoint, 0, len(a))
 	if obsIndex == 0 {
 		for _, r := range a {
-			retVal = append(retVal, DataPoint(r[0], r[1:]))
+			retVal = append(retVal, ImportDataPoint(r[0], r[1:]))
 		}
 		return retVal
 	}
@@ -323,13 +323,13 @@ func MakeDataPoints(a [][]float64, obsIndex int) []*dataPoint {
 	// otherwise the observation is expected to be the last col
 	last := len(a[0]) - 1
 	for _, r := range a {
-		retVal = append(retVal, DataPoint(r[last], r[:last]))
+		retVal = append(retVal, ImportDataPoint(r[last], r[:last]))
 	}
 	return retVal
 }
 
-func perverseMakeDataPoints(a [][]float64, obsIndex int) []*dataPoint {
-	retVal := make([]*dataPoint, 0, len(a))
+func perverseMakeDataPoints(a [][]float64, obsIndex int) []*DataPoint {
+	retVal := make([]*DataPoint, 0, len(a))
 	for _, r := range a {
 		obs := r[obsIndex]
 		others := make([]float64, 0, len(r)-1)
@@ -339,7 +339,7 @@ func perverseMakeDataPoints(a [][]float64, obsIndex int) []*dataPoint {
 			}
 			others = append(others, c)
 		}
-		retVal = append(retVal, DataPoint(obs, others))
+		retVal = append(retVal, ImportDataPoint(obs, others))
 	}
 	return retVal
 }
